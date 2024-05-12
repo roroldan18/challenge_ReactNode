@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Toaster, toast } from 'sonner';
 import { uploadFile } from "./services/upload";
 import { type Data } from './types';
+import { Search } from "./steps/Search";
 
 // Como nuestra aplicación maneja diferentes estados, es importante tener un objeto que identifique el estado actual.
 const APP_STATUS = {
@@ -58,29 +59,39 @@ function App() {
       toast.success("Archivo subido correctamente")
 
   }     
+
+  const showInput = appStatus !== APP_STATUS.READY_USAGE
+
   return (
     <>
       <Toaster />
       <h4>Challenge: Upload CSV + Search</h4>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="">
-           <input
-            disabled={appStatus === APP_STATUS.UPLOADING} 
-            type="file" 
-            accept=".csv" 
-            name="file" 
-            onChange={handleInputChange}/>
-        </label>
-        {
-          appStatus in BUTTON_TEXT
-          &&
-          <button 
-          disabled={appStatus === APP_STATUS.UPLOADING}
-          >
-            {BUTTON_TEXT[appStatus as keyof typeof BUTTON_TEXT]}
-          </button>
-        }
-      </form>
+      {
+        showInput
+        ?
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="">
+            <input
+              disabled={appStatus === APP_STATUS.UPLOADING} 
+              type="file" 
+              accept=".csv" 
+              name="file" 
+              onChange={handleInputChange}/>
+          </label>
+          {
+            appStatus in BUTTON_TEXT
+            &&
+            <button disabled={appStatus === APP_STATUS.UPLOADING}>
+                {BUTTON_TEXT[appStatus as keyof typeof BUTTON_TEXT]}
+            </button>
+          }
+        </form>
+        :
+        <Search initialData={data} />
+      }
+      
+
+
     </>
   )
 }
