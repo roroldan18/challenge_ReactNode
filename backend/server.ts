@@ -35,10 +35,10 @@ app.post('/api/files', upload.single('file'),async (req, res) => {
     let json: Array <Record <string, string>> = []
     try {
         // 4. Transform File (Buffer) to String
-        const csv = file.buffer.toString('utf-8');
+        const csv = Buffer.from(file.buffer).toString('utf-8');
         
         // 5. Parse CSV
-        json = csvToJson.fieldDelimiter(',').getJsonFromCsv(csv);
+        json = csvToJson.fieldDelimiter(',').csvStringToJson(csv)
 
     } catch (error) {
         return res.status(500).json({

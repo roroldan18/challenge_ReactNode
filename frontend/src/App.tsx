@@ -1,4 +1,7 @@
 import { useState } from "react"
+import { Toaster, toast } from 'sonner';
+import { uploadFile } from "./services/upload";
+import { type Data } from './types';
 
 // Como nuestra aplicación maneja diferentes estados, es importante tener un objeto que identifique el estado actual.
 const APP_STATUS = {
@@ -20,6 +23,7 @@ type AppStatusType = typeof APP_STATUS[keyof typeof APP_STATUS];
 
 function App() {
   const [appStatus, setAppStatus]  = useState<AppStatusType>(APP_STATUS.IDLE)
+  const [data, setData] = useState<Data>([])
   const [file, setFile] = useState<File | null>(null)
 
   const handleInputChange = (event:React.ChangeEvent<HTMLInputElement>) => {
@@ -31,16 +35,32 @@ function App() {
       }
   }
 
-  const handleSubmit = (event:React.FormEvent<HTMLFormElement>)  => {
+  const handleSubmit = async (event:React.FormEvent<HTMLFormElement>)  => {
       event.preventDefault()
-      console.log('TODO')
-  } 
+      
+      if(!file || appStatus !== APP_STATUS.READY_UPLOAD){
+        return
+      }
+      
+      setAppStatus(APP_STATUS.UPLOADING)
 
+      const [err, newData] = await uploadFile(file)
 
-  const showButton = appStatus === APP_STATUS.READY_UPLOAD || APP_STATUS.UPLOADING
-    
+      if(err){
+        setAppStatus(APP_STATUS.ERROR)
+        toast.error(err.message)
+        return
+      }
+
+      setAppStatus(APP_STATUS.READY_USAGE)
+      if(newData) setData(newData)
+        console.log(newData);
+      toast.success("Archivo subido correctamente")
+
+  }     
   return (
     <>
+      <Toaster />
       <h4>Challenge: Upload CSV + Search</h4>
       <form onSubmit={handleSubmit}>
         <label htmlFor="">
@@ -52,10 +72,13 @@ function App() {
             onChange={handleInputChange}/>
         </label>
         {
-          showButton
+          appStatus in BUTTON_TEXT
           &&
-          <button>
-            { BUTTON_TEXT[appStatus] }</button>
+          <button 
+          disabled={appStatus === APP_STATUS.UPLOADING}
+          >
+            {BUTTON_TEXT[appStatus as keyof typeof BUTTON_TEXT]}
+          </button>
         }
       </form>
     </>
